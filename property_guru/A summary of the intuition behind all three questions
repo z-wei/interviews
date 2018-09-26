@@ -1,0 +1,59 @@
+
+
+Question 1:
+
+This is a basic query which includes : 
+
+1. returning the columns of interest
+2. selecting from a table
+3. group by at a categorical column of interest
+4. using an aggregate function of a particular numeric column becuase you used the group by
+5. and ordering the returned result by a particular column. 
+
+
+
+Question 2: 
+
+Organizing categories in a categorical column according to the biggest values of another column.
+In this case I want to organize categories according to the values with the biggest time (or latest time). 
+I am unable to use the aggregate function here becuase the aggregate function does not allow for that kind of individual ordering and selection.
+
+1. Thus I have to enumerate this ordering for the various categories according the the date
+    a. stating the categories with row_number() over (parition by categorical_column)
+    b. stating the column where the order comes from over(partition by categorical_column order by column_interest asc_dsc) as alias
+    c. This enumeration itself will be a new column created in the table. This will be a sub-query.
+    
+    
+2. Then filter out the latest date and its associated value using this enumeration 
+
+    a. filter out each category and its associated value based on the enumeration in the sub-query.
+        select column of interest, value
+        from sub query
+        where alias = 1
+        order by whatever order you want (depending on the columns you are retuning).
+        
+Note: Question 2 is different from question 3 in that each unique category is made up of 2 columns. But don't be fooled. It's just a permutation problem. It's not complex. 
+        
+        
+        
+Question 3:
+
+Similar to question 2. This question organizes categories according to the values of another column in an order.
+This order is important becuase we need to see the biggest 3 values of each category in this question.
+We need to look at the biggest 3 values and determine if they are bigger than or equal to 1024.
+
+Not an aggregate question again as each row within the categories has to be sorted in an order and then filtered out
+
+1. enumereate these categories based on the numerical column.
+    a. select *, row_number() over(partition by categorical_column order by numerical_column asc_desc) as enumerate_alias
+    from table
+    
+2. Filter from the above sub-query with the enumerate order for each category in a new column:
+    a. select categorical_column
+    from sub-query
+    where enumerate_alias <= 3
+    group by categorical_column
+    having sum(numerical_column) >= 1024
+    
+    
+Note: The later group by is necessary as after filtering out only the top 3 rows for each category we are looking at these 3 rows as an aggregate to get their sum using the sum() function. 
